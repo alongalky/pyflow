@@ -1,5 +1,5 @@
 import sys
-from chat_server import ChatServer
+from .chat_server import ChatServer
 
 
 def get_client_response():
