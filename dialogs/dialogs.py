@@ -51,11 +51,9 @@ class DialogChain(Dialog):
         counter = state["counter"]
         return_values = state["return_values"]
 
-        while True:
-            if counter == len(self.dialogs):
-                return Done(return_value=return_values)
-
+        while counter < len(self.dialogs):
             response = self.dialogs[counter].get_next_message(client_response)
+
             if isinstance(response, Done):
                 return_values.append(response.return_value)
                 counter += 1
@@ -65,4 +63,4 @@ class DialogChain(Dialog):
             else:
                 return response
 
-        return response
+        return Done(return_value=return_values)
