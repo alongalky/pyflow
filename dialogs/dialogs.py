@@ -30,11 +30,11 @@ class PromptDialog(Dialog):
     def get_next_message(self, client_response):
         asked = self.dialog_state.get_state()["asked"]
 
-        response = (
-            Done(return_value=client_response)
-            if asked
-            else ServerResponse(response=self.prompt)
-        )
+        if asked:
+            response = Done(return_value=client_response)
+        else:
+            response = ServerResponse(response=self.prompt)
+
         self.dialog_state.save_state({"asked": True})
 
         return response
