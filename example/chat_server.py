@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 from dialogs.persistence import InMemoryPersistence, DialogState
-from dialogs import PromptDialog, ServerResponse, Dialog, Done, DialogChain
+from dialogs import PromptDialog, Dialog, DialogChain
 
 
 class IntelligentDialog(Dialog):
@@ -56,9 +56,9 @@ class IntelligentDialog(Dialog):
 
     def get_next_message(self, client_response):
         intro_response = self.intro_dialog.get_next_message(client_response)
-        if not isinstance(intro_response, Done):
+        if not self.intro_dialog.is_done():
             return intro_response
-        name, choice = intro_response.return_value
+        name, choice = self.intro_dialog.get_return_value()
 
         if choice == "1":
             main_dialog = self.dragon_dialog
@@ -66,10 +66,10 @@ class IntelligentDialog(Dialog):
             main_dialog = self.covid_dialog
 
         main_dialog_response = main_dialog.get_next_message(client_response)
-        if not isinstance(main_dialog_response, Done):
+        if not main_dialog.is_done():
             return main_dialog_response
 
-        return Done(return_value=f"Bye {name}! Hope you had fun!")
+        self.dialog_state.set_return_value(f"Bye {name}! Hope you had fun!")
 
 
 @dataclass
@@ -78,8 +78,7 @@ class ChatServer:
 
     def get_server_message(self, client_response):
         server_response = self.main_dialog.get_next_message(client_response)
-        return (
-            server_response.response
-            if isinstance(server_response, ServerResponse)
-            else f"Ciao! {server_response.return_value}"
-        )
+        if not self.main_dialog.is_done():
+            return server_response
+
+        return f"Ciao! {self.main_dialog.get_return_value()}"
