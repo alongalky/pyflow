@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import List, Optional
+from typing import Optional
 
 from .persistence import DialogState
 
@@ -23,52 +23,45 @@ class Dialog:
         pass
 
 
-class PromptDialog(Dialog):
-    def __init__(self, dialog_state: DialogState, prompt: str):
-        super().__init__(dialog_state)
-        self.dialog_state.set_default_state({"asked": False})
-        self.prompt = prompt
+def prompt(text):
+    def _prompt(state: DialogState, client_response: ClientResponse):
+        if state.is_done():
+            return state.get_return_value()
 
-    def get_next_message(self, client_response):
-        if self.is_done():
-            return
-
-        asked = self.dialog_state.get_state()["asked"]
+        state.set_default_state({"asked": False})
+        asked = state.get_state()["asked"]
 
         if not asked:
-            self.dialog_state.save_state({"asked": True})
-            return self.prompt
+            state.save_state({"asked": True})
+            yield text
 
-        self.dialog_state.set_return_value(client_response)
+        state.set_return_value(client_response)
+        return client_response
+
+    return _prompt
 
 
-class DialogChain(Dialog):
-    def __init__(self, dialog_state: DialogState, dialogs: List[Dialog]):
-        super().__init__(dialog_state)
-        self.dialog_state = dialog_state
-        self.dialog_state.set_default_state({"counter": 0, "return_values": []})
-        self.dialogs = dialogs
+def chain(dialogs: list):
+    def _chain(state: DialogState, client_response: ClientResponse):
+        if state.is_done():
+            return state.get_return_value()
 
-    def get_next_message(self, client_response):
-        if self.is_done():
-            return
+        state.set_default_state({"counter": 0, "return_values": []})
 
-        state = self.dialog_state.get_state()
-        counter = state["counter"]
-        return_values = state["return_values"]
+        current_state = state.get_state()
+        counter = current_state["counter"]
+        return_values = current_state["return_values"]
 
-        while counter < len(self.dialogs):
-            dialog = self.dialogs[counter]
-            response = dialog.get_next_message(client_response)
+        while counter < len(dialogs):
+            subflow_state = state.subflow_state(f"subdialog_{counter}")
+            dialog = dialogs[counter]
 
-            if dialog.is_done():
-                return_values.append(dialog.get_return_value())
+            return_value = yield from dialog(subflow_state, client_response)
 
-                counter += 1
-                self.dialog_state.save_state(
-                    {"counter": counter, "return_values": return_values}
-                )
-            else:
-                return response
+            return_values.append(return_value)
+            counter += 1
+            state.save_state({"counter": counter, "return_values": return_values})
 
-        self.dialog_state.set_return_value(return_values)
+        return return_values
+
+    return _chain

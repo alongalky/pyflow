@@ -21,6 +21,8 @@ class InMemoryPersistence(PersistenceProvider):
         sub_state = self.state
 
         for k in path:
+            if k not in sub_state:
+                return None
             sub_state = sub_state[k]
 
         return sub_state
