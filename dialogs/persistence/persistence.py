@@ -46,7 +46,7 @@ class DialogState:
             state = EMPTY_STATE
         return state
 
-    def subflow_state(self, subflow_id: str):
+    def subflow(self, subflow_id: str):
         return DialogState(
             persistence=self.persistence, path=[*self.path, "subflows", subflow_id]
         )

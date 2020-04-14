@@ -23,9 +23,8 @@ COVID_DIALOG = chain(
 
 
 def intelligent_dialog(state, response):
-    name = yield from prompt("Hey! What's your name?")(
-        state.subflow_state("intro1"), response
-    )
+    intro1_state = state.subflow("intro1")
+    name = yield from prompt("Hey! What's your name?")(intro1_state, response)
     _, choice = yield from chain(
         [
             prompt(f"Hello {name}!"),
@@ -33,15 +32,15 @@ def intelligent_dialog(state, response):
                 "Do you want to talk about dragons or covid? answer 1 for dragons and 2 for covid"
             ),
         ]
-    )(state.subflow_state("intro2"), response)
+    )(state.subflow("intro2"), response)
 
     if choice == "1":
         is_like_dragons, is_seriously_like_dragons, is_wanna_hear_more = yield from DRAGON_DIALOG(
-            state.subflow_state("dragons"), response
+            state.subflow("dragons"), response
         )
     else:
         is_covid_scary, is_seriously_covid_scary, is_playing = yield from COVID_DIALOG(
-            state.subflow_state("covid"), response
+            state.subflow("covid"), response
         )
 
 

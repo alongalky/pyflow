@@ -53,7 +53,7 @@ def chain(dialogs: list):
         return_values = current_state["return_values"]
 
         while counter < len(dialogs):
-            subflow_state = state.subflow_state(f"subdialog_{counter}")
+            subflow_state = state.subflow(f"subdialog_{counter}")
             dialog = dialogs[counter]
 
             return_value = yield from dialog(subflow_state, client_response)
