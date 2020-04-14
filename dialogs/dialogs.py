@@ -1,5 +1,4 @@
-from abc import abstractmethod
-from typing import Optional
+from functools import partial
 
 from .persistence import DialogState
 
@@ -8,55 +7,45 @@ ClientResponse = str
 ServerResponse = str
 
 
-class Dialog:
-    def __init__(self, dialog_state: DialogState):
-        self.dialog_state = dialog_state
+def run(
+    subflow_id: str, subflow: callable, state: DialogState, response: ClientResponse
+):
+    subflow_state = state.get_subflow_state(subflow_id)
+    if subflow_state.is_done():
+        return subflow_state.get_return_value()
 
-    def get_return_value(self) -> object:
-        return self.dialog_state.get_return_value()
+    return_value = yield from subflow(
+        partial(run, state=subflow_state, response=response), subflow_state, response
+    )
 
-    def is_done(self) -> bool:
-        return self.dialog_state.is_done()
-
-    @abstractmethod
-    def get_next_message(self, client_response) -> Optional[ServerResponse]:
-        pass
+    subflow_state.set_return_value(return_value)
+    return return_value
 
 
 def prompt(text):
-    def _prompt(state: DialogState, client_response: ClientResponse):
-        if state.is_done():
-            return state.get_return_value()
-
-        state.set_default_state({"asked": False})
-        asked = state.get_state()["asked"]
+    def _prompt(run, state: DialogState, client_response: ClientResponse):
+        current_state = state.get_state({"asked": False})
+        asked = current_state["asked"]
 
         if not asked:
             state.save_state({"asked": True})
             yield text
 
-        state.set_return_value(client_response)
         return client_response
 
     return _prompt
 
 
 def chain(dialogs: list):
-    def _chain(state: DialogState, client_response: ClientResponse):
-        if state.is_done():
-            return state.get_return_value()
-
-        state.set_default_state({"counter": 0, "return_values": []})
-
-        current_state = state.get_state()
+    def _chain(run, state: DialogState, client_response: ClientResponse):
+        current_state = state.get_state({"counter": 0, "return_values": []})
         counter = current_state["counter"]
         return_values = current_state["return_values"]
 
         while counter < len(dialogs):
-            subflow_state = state.subflow(f"subdialog_{counter}")
             dialog = dialogs[counter]
 
-            return_value = yield from dialog(subflow_state, client_response)
+            return_value = yield from run(f"subdialog_{counter}", dialog)
 
             return_values.append(return_value)
             counter += 1

@@ -26,17 +26,24 @@ class DialogState:
     persistence: PersistenceProvider
     path: List[str] = field(default_factory=list)
 
-    def set_default_state(self, state):
-        if self.get_state() == "__empty__":
-            self.save_state(state)
-
     def save_state(self, state):
         previous_state = self._get_full_state()
         new_state = {**previous_state, "local": state}
         self.persistence.save_state(self.path, new_state)
 
-    def get_state(self):
+    def get_state(self, default_state):
+        self._set_default_state(default_state)
+
         return self._get_full_state()["local"]
+
+    def get_subflow_state(self, subflow_id: str):
+        return DialogState(
+            persistence=self.persistence, path=[*self.path, "subflows", subflow_id]
+        )
+
+    def _set_default_state(self, state):
+        if self._get_full_state()["local"] == "__empty__":
+            self.save_state(state)
 
     def _get_full_state(self):
         state = self.persistence.get_state(self.path)
@@ -45,11 +52,6 @@ class DialogState:
             self.persistence.save_state(self.path, new_empty_state)
             state = EMPTY_STATE
         return state
-
-    def subflow(self, subflow_id: str):
-        return DialogState(
-            persistence=self.persistence, path=[*self.path, "subflows", subflow_id]
-        )
 
     def set_return_value(self, return_value):
         state = self._get_full_state()
