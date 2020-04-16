@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 from dialogs.persistence import InMemoryPersistence, DialogState
-from dialogs.primitives import prompt, chain, multichoice
+from dialogs.primitives import prompt, chain, multichoice, yesno
 from dialogs import run_dialog
 
 DRAGON_DIALOG = chain(
@@ -22,6 +22,17 @@ COVID_DIALOG = chain(
 
 def intelligent_dialog(run, state, response):
     name = yield from run("intro1", prompt("Hey! What's your name?"))
+
+    interested = yield from run(
+        "interested",
+        yesno(
+            f"Hey {name}. Would you like to talk to me today?",
+            f"A simple yes or no would be good.",
+        ),
+    )
+    if not interested:
+        return
+
     choice = yield from run(
         "intro2",
         multichoice(

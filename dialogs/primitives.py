@@ -57,11 +57,32 @@ def multichoice(question: str, wrong_answer_prompt: str, choices: List[str]) -> 
 
             valid_answers = {str(i + 1) for i in range(len(choices))}
             if answer in valid_answers:
-                break
+                return int(answer) - 1
 
             counter += 1
             state.save_state({"counter": counter})
 
-        return int(answer) - 1
-
     return _multichoice
+
+
+def yesno(question: str, wrong_answer_prompt: str) -> Dialog:
+    def _yesno(
+        run: RunSubdialog, state: DialogState, client_response: ClientResponse
+    ) -> DialogGenerator:
+        current_state = state.get_state({"counter": 0})
+        counter = current_state["counter"]
+
+        while True:
+            message = question if counter == 0 else wrong_answer_prompt
+            answer = (
+                (yield from run(f"attempt_{counter}", prompt(message))).strip().lower()
+            )
+
+            valid_answer_values = {"n": False, "no": False, "y": True, "yes": True}
+            if answer in valid_answer_values:
+                return valid_answer_values[answer]
+
+            counter += 1
+            state.save_state({"counter": counter})
+
+    return _yesno
