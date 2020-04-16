@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from functools import partial
 
 from dialogs.persistence import InMemoryPersistence, DialogState
-from dialogs import prompt, chain, run
+from dialogs import prompt, chain, run_dialog
 
 DRAGON_DIALOG = chain(
     [
@@ -37,11 +37,7 @@ class ChatServer:
     def get_server_message(self, client_response):
         main_dialog = intelligent_dialog
 
-        for server_response in main_dialog(
-            partial(run, response=client_response, state=self.state),
-            self.state,
-            client_response,
-        ):
+        for server_response in run_dialog(main_dialog, self.state, client_response):
             return server_response
 
         return "Ciao!"
