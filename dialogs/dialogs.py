@@ -1,6 +1,6 @@
 from functools import partial
 
-from .types import Dialog, DialogGenerator, ClientResponse, RunSubdialog, DialogState
+from .types import Dialog, DialogGenerator, ClientResponse, DialogState
 
 
 def run_dialog(

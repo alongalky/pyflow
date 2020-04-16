@@ -7,5 +7,5 @@ ClientResponse = str
 ServerResponse = str
 
 DialogGenerator = Generator[ServerResponse, None, Any]
-RunSubdialog = Callable[[str, "Dialog", DialogState, ClientResponse], DialogGenerator]
+RunSubdialog = Callable[[str, "Dialog"], DialogGenerator]
 Dialog = Callable[[RunSubdialog, DialogState, ClientResponse], DialogGenerator]
