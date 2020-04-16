@@ -2,7 +2,8 @@ from dataclasses import dataclass
 from functools import partial
 
 from dialogs.persistence import InMemoryPersistence, DialogState
-from dialogs import prompt, chain, run_dialog
+from dialogs.primitives import prompt, chain
+from dialogs import run_dialog
 
 DRAGON_DIALOG = chain(
     [
