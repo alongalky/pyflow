@@ -23,20 +23,7 @@ def chain(dialogs: list) -> Dialog:
     def _chain(
         run: RunSubdialog, state: DialogState, client_response: ClientResponse
     ) -> DialogGenerator:
-        current_state = state.get_state({"counter": 0, "return_values": []})
-        counter = current_state["counter"]
-        return_values = current_state["return_values"]
-
-        while counter < len(dialogs):
-            dialog = dialogs[counter]
-
-            return_value = yield from run(dialog)
-
-            return_values.append(return_value)
-            counter += 1
-            state.save_state({"counter": counter, "return_values": return_values})
-
-        return return_values
+        return [(yield from run(dialog)) for dialog in dialogs]
 
     return _chain
 
@@ -45,11 +32,10 @@ def multichoice(question: str, wrong_answer_prompt: str, choices: List[str]) -> 
     def _multichoice(
         run: RunSubdialog, state: DialogState, client_response: ClientResponse
     ) -> DialogGenerator:
-        current_state = state.get_state({"counter": 0})
-        counter = current_state["counter"]
+        first_time = True
 
         while True:
-            message = question if counter == 0 else wrong_answer_prompt
+            message = question if first_time else wrong_answer_prompt
             text = "\n".join(
                 [message] + [f"{i+1}. {choice}" for i, choice in enumerate(choices)]
             )
@@ -59,8 +45,7 @@ def multichoice(question: str, wrong_answer_prompt: str, choices: List[str]) -> 
             if answer in valid_answers:
                 return int(answer) - 1
 
-            counter += 1
-            state.save_state({"counter": counter})
+            first_time = False
 
     return _multichoice
 
@@ -69,18 +54,16 @@ def yesno(question: str, wrong_answer_prompt: str) -> Dialog:
     def _yesno(
         run: RunSubdialog, state: DialogState, client_response: ClientResponse
     ) -> DialogGenerator:
-        current_state = state.get_state({"counter": 0})
-        counter = current_state["counter"]
+        first_time = False
 
         while True:
-            message = question if counter == 0 else wrong_answer_prompt
+            message = question if first_time else wrong_answer_prompt
             answer = (yield from run(prompt(message))).strip().lower()
 
             valid_answer_values = {"n": False, "no": False, "y": True, "yes": True}
             if answer in valid_answer_values:
                 return valid_answer_values[answer]
 
-            counter += 1
-            state.save_state({"counter": counter})
+            first_time = False
 
     return _yesno
