@@ -30,7 +30,7 @@ def chain(dialogs: list) -> Dialog:
         while counter < len(dialogs):
             dialog = dialogs[counter]
 
-            return_value = yield from run(f"subdialog_{counter}", dialog)
+            return_value = yield from run(dialog)
 
             return_values.append(return_value)
             counter += 1
@@ -53,7 +53,7 @@ def multichoice(question: str, wrong_answer_prompt: str, choices: List[str]) -> 
             text = "\n".join(
                 [message] + [f"{i+1}. {choice}" for i, choice in enumerate(choices)]
             )
-            answer = yield from run(f"attempt_{counter}", prompt(text))
+            answer = yield from run(prompt(text))
 
             valid_answers = {str(i + 1) for i in range(len(choices))}
             if answer in valid_answers:
@@ -74,9 +74,7 @@ def yesno(question: str, wrong_answer_prompt: str) -> Dialog:
 
         while True:
             message = question if counter == 0 else wrong_answer_prompt
-            answer = (
-                (yield from run(f"attempt_{counter}", prompt(message))).strip().lower()
-            )
+            answer = (yield from run(prompt(message))).strip().lower()
 
             valid_answer_values = {"n": False, "no": False, "y": True, "yes": True}
             if answer in valid_answer_values:
