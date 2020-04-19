@@ -50,11 +50,11 @@ def multichoice(question: str, wrong_answer_prompt: str, choices: List[str]) -> 
     return _multichoice
 
 
-def yesno(question: str, wrong_answer_prompt: str) -> Dialog:
-    def _yesno(
+def yes_no(question: str, wrong_answer_prompt: str) -> Dialog:
+    def _yes_no(
         run: RunSubdialog, state: DialogState, client_response: ClientResponse
     ) -> DialogGenerator:
-        first_time = False
+        first_time = True
 
         while True:
             message = question if first_time else wrong_answer_prompt
@@ -66,4 +66,4 @@ def yesno(question: str, wrong_answer_prompt: str) -> Dialog:
 
             first_time = False
 
-    return _yesno
+    return _yes_no

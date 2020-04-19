@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 from dialogs.persistence import InMemoryPersistence, DialogState
-from dialogs.primitives import prompt, chain, multichoice, yesno
+from dialogs.primitives import prompt, chain, multichoice, yes_no
 from dialogs import run_dialog
 
 DRAGON_DIALOG = chain(
@@ -24,7 +24,7 @@ def intelligent_dialog(run, state, response):
     name = yield from run(prompt("Hey! What's your name?"))
 
     interested = yield from run(
-        yesno(
+        yes_no(
             f"Hey {name}. Would you like to talk to me today?",
             f"A simple yes or no would be good.",
         )
