@@ -6,6 +6,7 @@ from .persistence import PersistenceProvider
 @dataclass
 class InMemoryPersistence(PersistenceProvider):
     state: dict = field(default_factory=dict)
+    outgoing_message_queue: list = field(default_factory=list)
 
     def save_state(self, path, state):
         if path:
@@ -26,3 +27,11 @@ class InMemoryPersistence(PersistenceProvider):
             sub_state = sub_state[k]
 
         return sub_state
+
+    def enqueue(self, message):
+        self.outgoing_message_queue.append(message)
+
+    def dequeue_all(self) -> list:
+        messages = self.outgoing_message_queue
+        self.outgoing_message_queue = []
+        return messages

@@ -11,8 +11,8 @@ def main():
     client_response = ""
     server_message = ""
     while not server_message.lower().startswith("ciao"):
-        server_message = chat_server.get_server_message(client_response)
-        print("Server:", server_message)
+        for server_message in chat_server.get_server_messages(client_response):
+            print("Server:", server_message)
         client_response = get_client_response().strip()
 
 
