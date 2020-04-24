@@ -66,10 +66,7 @@ class ChatServer:
     def get_server_messages(self, client_response):
         main_dialog = intelligent_dialog
 
-        for _ in run_dialog(
-            main_dialog, self.state, client_response, send=self.persistence.enqueue
-        ):
-            messages = self.persistence.dequeue_all()
+        for messages in run_dialog(main_dialog, self.state, client_response):
             return messages
 
         return ["Ciao!"]

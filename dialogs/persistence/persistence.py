@@ -13,14 +13,6 @@ class PersistenceProvider:
     def get_state(self, path: List[str]) -> dict:
         pass
 
-    @abstractmethod
-    def enqueue(self, message):
-        pass
-
-    @abstractmethod
-    def dequeue_all(self) -> List:
-        pass
-
 
 EMPTY_STATE = {
     "local": "__empty__",

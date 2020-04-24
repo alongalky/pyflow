@@ -3,11 +3,15 @@ from itertools import count
 from typing import Iterator
 
 from .types import Dialog, DialogGenerator, ClientResponse, DialogState
+from .message_queue import MessageQueue
 
 
 def run_dialog(
-    dialog, state: DialogState, client_response: ClientResponse, send
+    dialog, state: DialogState, client_response: ClientResponse
 ) -> DialogGenerator:
+    queue = MessageQueue()
+    send = queue.enqueue
+
     curried_run = partial(
         _run,
         client_response=client_response,
@@ -16,7 +20,8 @@ def run_dialog(
         call_counter=count(),
     )
 
-    return dialog(curried_run, state, client_response, send)
+    for _ in dialog(curried_run, state, client_response, send=send):
+        yield queue.dequeue_all()
 
 
 def _run(
