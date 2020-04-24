@@ -3,16 +3,27 @@ from itertools import count
 from typing import Iterator
 
 from .types import Dialog, DialogGenerator, ClientResponse, DialogState
+from .persistence import PersistenceProvider
 
 
 def run_dialog(
-    dialog: Dialog, state: DialogState, client_response: ClientResponse
+    dialog: Dialog, persistence: PersistenceProvider, client_response: ClientResponse
 ) -> DialogGenerator:
+    if client_response == "undo":
+        yield persistence.undo()
+
+    state = persistence.get_state()
+
     curried_run = partial(
-        _run, client_response=client_response, state=state, call_counter=count()
+        _run,
+        client_response=client_response,
+        state=DialogState(state),
+        call_counter=count(),
     )
 
-    return dialog(curried_run, state, client_response)
+    for message in dialog(curried_run, DialogState(state), client_response):
+        persistence.save_state(state, message)
+        yield message
 
 
 def _run(

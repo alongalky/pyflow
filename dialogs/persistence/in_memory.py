@@ -1,28 +1,27 @@
 from dataclasses import dataclass, field
+import copy
 
-from .persistence import PersistenceProvider
+from .persistence import PersistenceProvider, new_empty_state
+
+
+def empty_history():
+    return [new_empty_state()]
 
 
 @dataclass
 class InMemoryPersistence(PersistenceProvider):
-    state: dict = field(default_factory=dict)
+    history: list = field(default_factory=lambda: [new_empty_state()])
+    outgoing_messages: list = field(default_factory=list)
 
-    def save_state(self, path, state):
-        if path:
-            sub_state = self.state
+    def save_state(self, state, outgoing_message):
+        self.history.append(copy.deepcopy(state))
+        self.outgoing_messages.append(outgoing_message)
 
-            for key in path[:-1]:
-                sub_state = sub_state.setdefault(key, {})
-            sub_state[path[-1]] = state
-        else:
-            self.state = state
+    def get_state(self):
+        return copy.deepcopy(self.history[-1]) if self.history else new_empty_state()
 
-    def get_state(self, path):
-        sub_state = self.state
-
-        for k in path:
-            if k not in sub_state:
-                return None
-            sub_state = sub_state[k]
-
-        return sub_state
+    def undo(self):
+        if len(self.history) > 2:
+            self.history.pop()
+            self.outgoing_messages.pop()
+        return self.outgoing_messages[-1]

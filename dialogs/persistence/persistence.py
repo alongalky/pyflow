@@ -1,73 +1,64 @@
 from dataclasses import dataclass, field
 from abc import abstractmethod
-from typing import List
-import copy
 
 
 class PersistenceProvider:
     @abstractmethod
-    def save_state(self, path: List[str], state: dict):
+    def save_state(self, state: dict, outgoing_message):
         pass
 
-    def get_state(self, path: List[str]) -> dict:
+    @abstractmethod
+    def get_state(self) -> dict:
+        pass
+
+    @abstractmethod
+    def undo(self):
         pass
 
 
-EMPTY_STATE = {
-    "local": "__empty__",
-    "subflows": {},
-    "is_done": False,
-    "return_value": None,
-}
+def new_empty_state():
+    return {
+        "local": "__empty__",
+        "subflows": {},
+        "is_done": False,
+        "return_value": None,
+    }
 
 
 @dataclass(frozen=True)
 class DialogState:
-    persistence: PersistenceProvider
-    path: List[str] = field(default_factory=list)
+    state: dict = field(default_factory=new_empty_state)
 
     def save_state(self, state):
-        previous_state = self._get_full_state()
-        new_state = {**previous_state, "local": state}
-        self.persistence.save_state(self.path, new_state)
+        self.state["local"] = state
 
     def get_state(self, default_state):
         self._set_default_state(default_state)
 
-        return self._get_full_state()["local"]
+        return self.state["local"]
 
     def get_subflow_state(self, subflow_id: str):
-        return DialogState(
-            persistence=self.persistence, path=[*self.path, "subflows", subflow_id]
-        )
+        if subflow_id not in self.state["subflows"]:
+            self.state["subflows"][subflow_id] = new_empty_state()
+
+        return DialogState(state=self.state["subflows"][subflow_id])
 
     def _set_default_state(self, state):
-        if self._get_full_state()["local"] == "__empty__":
+        if self.state["local"] == "__empty__":
             self.save_state(state)
 
-    def _get_full_state(self):
-        state = self.persistence.get_state(self.path)
-        if not state:
-            new_empty_state = copy.deepcopy(EMPTY_STATE)
-            self.persistence.save_state(self.path, new_empty_state)
-            state = EMPTY_STATE
-        return state
-
     def set_return_value(self, return_value):
-        state = self._get_full_state()
-        if state["is_done"]:
+        if self.state["is_done"]:
             raise Exception("Dialog is done, cannot set return value")
 
-        state["return_value"] = return_value
-        state["is_done"] = True
-        self.persistence.save_state(self.path, state)
+        self.state["return_value"] = return_value
+        self.state["is_done"] = True
 
     def get_return_value(self) -> object:
-        state = self.persistence.get_state(self.path)
-        if not state["is_done"]:
+        if not self.state["is_done"]:
             raise StopIteration("Dialog not done yet")
 
-        return state["return_value"]
+        return self.state["return_value"]
 
     def is_done(self) -> bool:
-        return self._get_full_state()["is_done"]
+        return self.state["is_done"]
