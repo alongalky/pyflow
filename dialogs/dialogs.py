@@ -7,7 +7,7 @@ from .message_queue import MessageQueue
 
 
 def run_dialog(
-    dialog, state: DialogState, client_response: ClientResponse
+    dialog: Dialog, state: DialogState, client_response: ClientResponse
 ) -> DialogGenerator:
     queue = MessageQueue()
     send = queue.enqueue
@@ -20,7 +20,7 @@ def run_dialog(
         call_counter=count(),
     )
 
-    for _ in dialog(curried_run, state, client_response, send=send):
+    for _ in dialog(curried_run, state, client_response, send):
         yield queue.dequeue_all()
 
 
@@ -37,13 +37,7 @@ def _run(
     if subflow_state.is_done():
         return subflow_state.get_return_value()
 
-    curried_run = partial(
-        _run,
-        state=subflow_state,
-        client_response=client_response,
-        send=send,
-        call_counter=count(),
-    )
+    curried_run = partial(_run, subflow_state, client_response, send, count())
     return_value = yield from subdialog(
         curried_run, subflow_state, client_response, send
     )

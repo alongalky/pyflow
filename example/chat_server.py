@@ -60,8 +60,7 @@ def intelligent_dialog(run, state, response, send):
 
 @dataclass
 class ChatServer:
-    persistence = InMemoryPersistence()
-    state = DialogState(persistence)
+    state = DialogState(InMemoryPersistence())
 
     def get_server_messages(self, client_response):
         main_dialog = intelligent_dialog
