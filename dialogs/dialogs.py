@@ -2,7 +2,13 @@ from functools import partial
 from itertools import count
 from typing import Iterator
 
-from .types import Dialog, DialogGenerator, ClientResponse, DialogState
+from .types import (
+    Dialog,
+    DialogGenerator,
+    ClientResponse,
+    DialogState,
+    SendToClientException,
+)
 
 
 def run_dialog(
@@ -12,7 +18,10 @@ def run_dialog(
         _run, client_response=client_response, state=state, call_counter=count()
     )
 
-    return dialog(curried_run, state, client_response)
+    try:
+        return dialog(curried_run, state, client_response)
+    except SendToClientException as e:
+        yield e.message
 
 
 def _run(
@@ -30,7 +39,7 @@ def _run(
     curried_run = partial(
         _run, state=subflow_state, client_response=client_response, call_counter=count()
     )
-    return_value = yield from subdialog(curried_run, subflow_state, client_response)
+    return_value = subdialog(curried_run, subflow_state, client_response)
 
     subflow_state.set_return_value(return_value)
     return return_value

@@ -21,9 +21,9 @@ COVID_DIALOG = chain(
 
 
 def intelligent_dialog(run, state, response):
-    name = yield from run(prompt("Hey! What's your name?"))
+    name = run(prompt("Hey! What's your name?"))
 
-    interested = yield from run(
+    interested = run(
         yes_no(
             f"Hey {name}. Would you like to talk to me today?",
             f"A simple yes or no would be good.",
@@ -32,7 +32,7 @@ def intelligent_dialog(run, state, response):
     if not interested:
         return
 
-    choice = yield from run(
+    choice = run(
         multichoice(
             f"What would you like to talk about?",
             f"Come on {name}! Now you know that's not valid. What will it be?",
@@ -41,9 +41,9 @@ def intelligent_dialog(run, state, response):
     )
 
     if choice == 0:
-        likes, really_likes, hear_more = yield from run(DRAGON_DIALOG)
+        likes, really_likes, hear_more = run(DRAGON_DIALOG)
     else:
-        scary, is_scared, is_playing = yield from run(COVID_DIALOG)
+        scary, is_scared, is_playing = run(COVID_DIALOG)
 
 
 @dataclass
