@@ -1,11 +1,15 @@
-from typing import Callable, Generator, Any
+from typing import Callable, Generator, Any, List
 
 from .persistence import DialogState
 
 
 ClientResponse = str
-ServerResponse = str
+ServerMessage = str
+ServerResponse = List[ServerMessage]
 
 DialogGenerator = Generator[ServerResponse, None, Any]
 RunSubdialog = Callable[["Dialog"], DialogGenerator]
-Dialog = Callable[[RunSubdialog, DialogState, ClientResponse], DialogGenerator]
+SendMessage = Callable[[ServerMessage], None]
+Dialog = Callable[
+    [RunSubdialog, DialogState, ClientResponse, SendMessage], DialogGenerator
+]
