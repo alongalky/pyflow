@@ -1,32 +1,44 @@
 from dataclasses import dataclass
+import random
 
 from dialogs.persistence import InMemoryPersistence, DialogState
-from dialogs.primitives import prompt, chain, multichoice, yes_no
+from dialogs.primitives import message, prompt, chain, multichoice, yes_no
 from dialogs import run_dialog
 
 DRAGON_DIALOG = chain(
     [
         prompt("Do you like dragons?"),
         prompt("Seriously, do you like dragons?"),
-        prompt("Good, because we REALLY Like dragons here. Wanna hear more?"),
+        message("Good, because we REALLY Like dragons here."),
+        yes_no("Wanna hear more?", "Are you sure?"),
     ]
 )
 COVID_DIALOG = chain(
     [
         prompt("How scary is covid?"),
         prompt("Seriously, are you scared?"),
+        message("I thought so."),
         prompt("You're just playing though, right?"),
     ]
 )
 
 
-def intelligent_dialog(run, state, response):
+def intelligent_dialog(run, state, response, send):
     name = run(prompt("Hey! What's your name?"))
+    random_animal = random.choice(["turtle", "pokemon", "hummingbird", "caterpillar"])
+    run(
+        chain(
+            [
+                message("What a beautiful name!"),
+                message(f"I had a {random_animal} called {name} once."),
+                message(f"So, {name}, if that's your real name..."),
+            ]
+        )
+    )
 
     interested = run(
         yes_no(
-            f"Hey {name}. Would you like to talk to me today?",
-            f"A simple yes or no would be good.",
+            "Would you like to talk to me today?", "A simple yes or no would be good."
         )
     )
     if not interested:
@@ -41,19 +53,19 @@ def intelligent_dialog(run, state, response):
     )
 
     if choice == 0:
-        likes, really_likes, hear_more = run(DRAGON_DIALOG)
+        run(DRAGON_DIALOG)
     else:
-        scary, is_scared, is_playing = run(COVID_DIALOG)
+        run(COVID_DIALOG)
 
 
 @dataclass
 class ChatServer:
     state = DialogState(InMemoryPersistence())
 
-    def get_server_message(self, client_response):
+    def get_server_messages(self, client_response):
         main_dialog = intelligent_dialog
 
-        for server_response in run_dialog(main_dialog, self.state, client_response):
-            return server_response
+        for messages in run_dialog(main_dialog, self.state, client_response):
+            return messages
 
-        return "Ciao!"
+        return ["Ciao!"]

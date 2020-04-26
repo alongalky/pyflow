@@ -10,16 +10,26 @@ from .types import (
 )
 
 
+def message(text: str):
+    def _send(
+        run: RunSubdialog, state: DialogState, client_response: ClientResponse, send
+    ):
+        send(text)
+
+    return _send
+
+
 def prompt(text) -> Dialog:
     def _prompt(
-        run: RunSubdialog, state: DialogState, client_response: ClientResponse
+        run: RunSubdialog, state: DialogState, client_response: ClientResponse, send
     ) -> ClientResponse:
         current_state = state.get_state({"asked": False})
         asked = current_state["asked"]
 
         if not asked:
             state.save_state({"asked": True})
-            raise SendToClientException(text)
+            run(message(text))
+            raise SendToClientException
 
         return client_response
 
@@ -28,7 +38,7 @@ def prompt(text) -> Dialog:
 
 def chain(dialogs: list) -> Dialog:
     def _chain(
-        run: RunSubdialog, state: DialogState, client_response: ClientResponse
+        run: RunSubdialog, state: DialogState, client_response: ClientResponse, send
     ) -> DialogGenerator:
         return [run(dialog) for dialog in dialogs]
 
@@ -37,7 +47,7 @@ def chain(dialogs: list) -> Dialog:
 
 def multichoice(question: str, wrong_answer_prompt: str, choices: List[str]) -> Dialog:
     def _multichoice(
-        run: RunSubdialog, state: DialogState, client_response: ClientResponse
+        run: RunSubdialog, state: DialogState, client_response: ClientResponse, send
     ) -> DialogGenerator:
         first_time = True
 
@@ -59,7 +69,7 @@ def multichoice(question: str, wrong_answer_prompt: str, choices: List[str]) -> 
 
 def yes_no(question: str, wrong_answer_prompt: str) -> Dialog:
     def _yes_no(
-        run: RunSubdialog, state: DialogState, client_response: ClientResponse
+        run: RunSubdialog, state: DialogState, client_response: ClientResponse, send
     ) -> DialogGenerator:
         first_time = True
 

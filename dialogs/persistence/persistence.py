@@ -9,6 +9,7 @@ class PersistenceProvider:
     def save_state(self, path: List[str], state: dict):
         pass
 
+    @abstractmethod
     def get_state(self, path: List[str]) -> dict:
         pass
 

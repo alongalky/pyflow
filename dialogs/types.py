@@ -1,17 +1,17 @@
-from typing import Callable, Generator, Any
-from dataclasses import dataclass
+from typing import Callable, Generator, Any, List
 
 from .persistence import DialogState
 
 
 ClientResponse = str
-ServerResponse = str
+ServerMessage = str
+ServerResponse = List[ServerMessage]
 
 DialogGenerator = Generator[ServerResponse, None, Any]
 RunSubdialog = Callable[["Dialog"], Any]
-Dialog = Callable[[RunSubdialog, DialogState, ClientResponse], Any]
+SendMessage = Callable[[ServerMessage], None]
+Dialog = Callable[[RunSubdialog, DialogState, ClientResponse, SendMessage], Any]
 
 
-@dataclass(frozen=True)
 class SendToClientException(Exception):
-    message: ServerResponse
+    pass
