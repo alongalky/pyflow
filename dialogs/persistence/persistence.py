@@ -14,12 +14,7 @@ class PersistenceProvider:
         pass
 
 
-EMPTY_STATE = {
-    "local": "__empty__",
-    "subflows": {},
-    "is_done": False,
-    "return_value": None,
-}
+EMPTY_STATE = {"subflows": {}, "is_done": False, "return_value": None}
 
 
 @dataclass(frozen=True)
@@ -27,31 +22,25 @@ class DialogState:
     persistence: PersistenceProvider
     path: List[str] = field(default_factory=list)
 
-    def save_state(self, state):
-        previous_state = self._get_full_state()
-        new_state = {**previous_state, "local": state}
-        self.persistence.save_state(self.path, new_state)
-
-    def get_state(self, default_state):
-        self._set_default_state(default_state)
-
-        return self._get_full_state()["local"]
-
     def get_subflow_state(self, subflow_id: str):
         return DialogState(
             persistence=self.persistence, path=[*self.path, "subflows", subflow_id]
         )
 
-    def _set_default_state(self, state):
-        if self._get_full_state()["local"] == "__empty__":
-            self.save_state(state)
+    def sent_to_client(self):
+        return "sent_to_client" in self._get_full_state()
+
+    def set_sent_to_client(self):
+        state = self._get_full_state()
+        state["sent_to_client"] = True
+        self.persistence.save_state(self.path, state)
 
     def _get_full_state(self):
         state = self.persistence.get_state(self.path)
         if not state:
-            new_empty_state = copy.deepcopy(EMPTY_STATE)
-            self.persistence.save_state(self.path, new_empty_state)
-            state = EMPTY_STATE
+            state = copy.deepcopy(EMPTY_STATE)
+            self.persistence.save_state(self.path, state)
+
         return state
 
     def set_return_value(self, return_value):
