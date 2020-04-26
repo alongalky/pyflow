@@ -8,8 +8,10 @@ ServerMessage = str
 ServerResponse = List[ServerMessage]
 
 DialogGenerator = Generator[ServerResponse, None, Any]
-RunSubdialog = Callable[["Dialog"], DialogGenerator]
+RunSubdialog = Callable[["Dialog"], Any]
 SendMessage = Callable[[ServerMessage], None]
-Dialog = Callable[
-    [RunSubdialog, DialogState, ClientResponse, SendMessage], DialogGenerator
-]
+Dialog = Callable[[RunSubdialog, DialogState, ClientResponse, SendMessage], Any]
+
+
+class SendToClientException(Exception):
+    pass
