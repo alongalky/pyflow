@@ -1,7 +1,8 @@
 from dataclasses import dataclass
 
+from dialogs.message_api import MessagingAPI
 from dialogs.persistence import InMemoryPersistence, DialogState
-from dialogs.primitives import prompt, chain, multichoice, yes_no
+from dialogs.primitives import prompt, chain #, multichoice, yes_no
 from dialogs import run_dialog
 
 DRAGON_DIALOG = chain(
@@ -20,40 +21,28 @@ COVID_DIALOG = chain(
 )
 
 
-def intelligent_dialog(run, state, response):
+def intelligent_dialog(run, state):
+
     name = yield from run(prompt("Hey! What's your name?"))
+    topic = yield from run(prompt(f"Hey {name}. Would you like to talk to me today?"))
 
-    interested = yield from run(
-        yes_no(
-            f"Hey {name}. Would you like to talk to me today?",
-            f"A simple yes or no would be good.",
-        )
-    )
-    if not interested:
-        return
-
-    choice = yield from run(
-        multichoice(
-            f"What would you like to talk about?",
-            f"Come on {name}! Now you know that's not valid. What will it be?",
-            ["Dragons", "COVID"],
-        )
-    )
-
-    if choice == 0:
-        likes, really_likes, hear_more = yield from run(DRAGON_DIALOG)
+    if topic and len(topic)>10:
+         MessagingAPI.send_message("this is too long for me...")
     else:
-        scary, is_scared, is_playing = yield from run(COVID_DIALOG)
+        MessagingAPI.send_message("this is too short for me...")
 
+    return None
 
 @dataclass
 class ChatServer:
     state = DialogState(InMemoryPersistence())
 
-    def get_server_message(self, client_response):
+    def get_server_message(self):
         main_dialog = intelligent_dialog
-
-        for server_response in run_dialog(main_dialog, self.state, client_response):
+        for server_response in run_dialog(main_dialog, self.state):
             return server_response
+        MessagingAPI.send_message("Ciao!!")
 
-        return "Ciao!"
+
+
+

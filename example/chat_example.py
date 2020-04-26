@@ -1,5 +1,7 @@
 import sys
-from .chat_server import ChatServer
+
+from dialogs.message_api import MessagingAPI
+from example.chat_server import ChatServer
 
 
 def get_client_response():
@@ -8,13 +10,21 @@ def get_client_response():
 
 def main():
     chat_server = ChatServer()
-    client_response = ""
-    server_message = ""
-    while not server_message.lower().startswith("ciao"):
-        server_message = chat_server.get_server_message(client_response)
-        print("Server:", server_message)
-        client_response = get_client_response().strip()
-
+    client_response = None
+    server_message = None
+    while not server_message or not server_message.text.lower().startswith("ciao"):
+        chat_server.get_server_message()
+        server_messages = MessagingAPI.consume_outbound_message()
+        token = ""
+        for m in server_messages:
+            print("Server:", m.text)
+            #lst message token
+            token = m.token
+            server_message = m
+        if server_message and not server_message.text.lower().startswith("ciao"):
+            client_response_text = get_client_response().strip()
+            if token:
+                client_response = MessagingAPI.receive_message(client_response_text, token)
 
 if __name__ == "__main__":
     main()

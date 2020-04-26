@@ -1,33 +1,32 @@
 from typing import List
 
+from dialogs.message_api import MessagingAPI
 from .types import Dialog, DialogGenerator, ClientResponse, RunSubdialog, DialogState
 
 
 def prompt(text) -> Dialog:
-    def _prompt(
-        run: RunSubdialog, state: DialogState, client_response: ClientResponse
-    ) -> DialogGenerator:
-        current_state = state.get_state({"asked": False})
-        asked = current_state["asked"]
+    def _prompt(run: RunSubdialog, state: DialogState) -> DialogGenerator:
+        current_state = state.get_state({"question": None})
+        question = current_state["question"]
+        if not question:
+            message_send_req = MessagingAPI.send_message(text)
+            state.save_state({"question": message_send_req})
+            yield message_send_req
 
-        if not asked:
-            state.save_state({"asked": True})
-            yield text
-
-        return client_response
+        response = MessagingAPI.consume_response_for(question.token)
+        return response.text
 
     return _prompt
 
 
 def chain(dialogs: list) -> Dialog:
     def _chain(
-        run: RunSubdialog, state: DialogState, client_response: ClientResponse
-    ) -> DialogGenerator:
+        run: RunSubdialog, state: DialogState) -> DialogGenerator:
         return [(yield from run(dialog)) for dialog in dialogs]
 
     return _chain
 
-
+"""
 def multichoice(question: str, wrong_answer_prompt: str, choices: List[str]) -> Dialog:
     def _multichoice(
         run: RunSubdialog, state: DialogState, client_response: ClientResponse
@@ -67,3 +66,4 @@ def yes_no(question: str, wrong_answer_prompt: str) -> Dialog:
             first_time = False
 
     return _yes_no
+"""

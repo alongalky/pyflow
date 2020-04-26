@@ -8,4 +8,4 @@ ServerResponse = str
 
 DialogGenerator = Generator[ServerResponse, None, Any]
 RunSubdialog = Callable[["Dialog"], DialogGenerator]
-Dialog = Callable[[RunSubdialog, DialogState, ClientResponse], DialogGenerator]
+Dialog = Callable[[RunSubdialog, DialogState], DialogGenerator]
