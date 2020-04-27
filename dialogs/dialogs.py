@@ -3,7 +3,8 @@ from itertools import count
 from typing import Iterator
 
 from .types import Dialog, DialogGenerator, ClientResponse, SendToClientException
-from .persistence import PersistenceProvider, DialogState
+from .persistence import PersistenceProvider
+from .dialog_state import DialogState
 from .primitives import send_to_client, message
 from .message_queue import MessageQueue
 
