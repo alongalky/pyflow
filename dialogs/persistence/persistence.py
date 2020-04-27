@@ -17,18 +17,18 @@ class PersistenceProvider:
 
 
 def new_empty_state():
-    return {"subflows": {}, "is_done": False, "return_value": None}
+    return {"subdialogs": [], "is_done": False, "return_value": None}
 
 
 @dataclass(frozen=True)
 class DialogState:
     state: dict = field(default_factory=new_empty_state)
 
-    def get_subflow_state(self, subflow_id: str):
-        if subflow_id not in self.state["subflows"]:
-            self.state["subflows"][subflow_id] = new_empty_state()
+    def get_subdialog_state(self, subdialog_index: int):
+        if len(self.state["subdialogs"]) == subdialog_index:
+            self.state["subdialogs"].append(new_empty_state())
 
-        return DialogState(state=self.state["subflows"][subflow_id])
+        return DialogState(state=self.state["subdialogs"][subdialog_index])
 
     def sent_to_client(self):
         return "sent_to_client" in self.state

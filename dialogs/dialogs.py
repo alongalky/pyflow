@@ -34,15 +34,13 @@ def _run(
     send,
     call_counter: Iterator[int],
 ):
-    call_count = next(call_counter)
-    subdialog_id = f"subdialog_{call_count}"
-    subflow_state = state.get_subflow_state(subdialog_id)
-    if subflow_state.is_done():
-        return subflow_state.get_return_value()
+    subdialog_state = state.get_subdialog_state(next(call_counter))
+    if subdialog_state.is_done():
+        return subdialog_state.get_return_value()
 
     if isinstance(subdialog, send_to_client):
-        if not subflow_state.sent_to_client():
-            subflow_state.set_sent_to_client()
+        if not subdialog_state.sent_to_client():
+            subdialog_state.set_sent_to_client()
             return subdialog()
         else:
             return_value = client_response
@@ -51,12 +49,12 @@ def _run(
     else:
         curried_run = partial(
             _run,
-            state=subflow_state,
+            state=subdialog_state,
             client_response=client_response,
             send=send,
             call_counter=count(),
         )
         return_value = subdialog(curried_run)
 
-    subflow_state.set_return_value(return_value)
+    subdialog_state.set_return_value(return_value)
     return return_value
