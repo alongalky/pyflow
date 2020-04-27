@@ -5,10 +5,6 @@ from .persistence import PersistenceProvider
 from dialogs.dialog_state import new_empty_state
 
 
-def empty_history():
-    return [new_empty_state()]
-
-
 @dataclass
 class InMemoryPersistence(PersistenceProvider):
     history: list = field(default_factory=lambda: [new_empty_state()])
