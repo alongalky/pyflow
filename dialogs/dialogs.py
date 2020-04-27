@@ -2,7 +2,6 @@ from functools import partial
 from itertools import count
 from typing import Iterator
 
-from .persistence import PersistenceProvider
 from .types import Dialog, DialogGenerator, ClientResponse, SendToClientException
 from .persistence import PersistenceProvider, DialogState
 from .primitives import send_to_client, message
@@ -17,6 +16,7 @@ def run_dialog(
 
     queue = MessageQueue()
     send = queue.enqueue
+
     state = persistence.get_state()
 
     try:
