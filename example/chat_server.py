@@ -1,38 +1,50 @@
 from dataclasses import dataclass
+import random
 
 from dialogs.persistence import InMemoryPersistence
-from dialogs.primitives import prompt, chain, multichoice, yes_no
+from dialogs.primitives import message, prompt, chain, multichoice, yes_no
 from dialogs import run_dialog
 
 DRAGON_DIALOG = chain(
     [
         prompt("Do you like dragons?"),
         prompt("Seriously, do you like dragons?"),
-        prompt("Good, because we REALLY Like dragons here. Wanna hear more?"),
+        message("Good, because we REALLY Like dragons here."),
+        yes_no("Wanna hear more?", "Are you sure?"),
     ]
 )
 COVID_DIALOG = chain(
     [
         prompt("How scary is covid?"),
         prompt("Seriously, are you scared?"),
+        message("I thought so."),
         prompt("You're just playing though, right?"),
     ]
 )
 
 
-def intelligent_dialog(run, state, response):
-    name = yield from run(prompt("Hey! What's your name?"))
+def intelligent_dialog(run):
+    name = run(prompt("Hey! What's your name?"))
+    random_animal = random.choice(["turtle", "pokemon", "hummingbird", "caterpillar"])
+    run(
+        chain(
+            [
+                message("What a beautiful name!"),
+                message(f"I had a {random_animal} called {name} once."),
+                message(f"So, {name}, if that's your real name..."),
+            ]
+        )
+    )
 
-    interested = yield from run(
+    interested = run(
         yes_no(
-            f"Hey {name}. Would you like to talk to me today?",
-            f"A simple yes or no would be good.",
+            "Would you like to talk to me today?", "A simple yes or no would be good."
         )
     )
     if not interested:
         return
 
-    choice = yield from run(
+    choice = run(
         multichoice(
             f"What would you like to talk about?",
             f"Come on {name}! Now you know that's not valid. What will it be?",
@@ -41,21 +53,19 @@ def intelligent_dialog(run, state, response):
     )
 
     if choice == 0:
-        likes, really_likes, hear_more = yield from run(DRAGON_DIALOG)
+        run(DRAGON_DIALOG)
     else:
-        scary, is_scared, is_playing = yield from run(COVID_DIALOG)
+        run(COVID_DIALOG)
 
 
 @dataclass
 class ChatServer:
     persistence = InMemoryPersistence()
 
-    def get_server_message(self, client_response):
+    def get_server_messages(self, client_response):
         main_dialog = intelligent_dialog
 
-        for server_response in run_dialog(
-            main_dialog, self.persistence, client_response
-        ):
-            return server_response
+        for messages in run_dialog(main_dialog, self.persistence, client_response):
+            return messages
 
-        return "Ciao!"
+        return ["Ciao!"]
