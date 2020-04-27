@@ -23,7 +23,7 @@ COVID_DIALOG = chain(
 )
 
 
-def intelligent_dialog(run, state, response, send):
+def intelligent_dialog(run):
     name = run(prompt("Hey! What's your name?"))
     random_animal = random.choice(["turtle", "pokemon", "hummingbird", "caterpillar"])
     run(

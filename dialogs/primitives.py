@@ -1,54 +1,32 @@
-from typing import List
+from typing import List, Any
 
 from .types import (
     Dialog,
     DialogGenerator,
     ClientResponse,
     RunSubdialog,
-    DialogState,
-    SendToClientException,
+    message,
+    send_to_client,
 )
 
 
-def message(text: str):
-    def _send(
-        run: RunSubdialog, state: DialogState, client_response: ClientResponse, send
-    ):
-        send(text)
-
-    return _send
-
-
 def prompt(text) -> Dialog:
-    def _prompt(
-        run: RunSubdialog, state: DialogState, client_response: ClientResponse, send
-    ) -> ClientResponse:
-        current_state = state.get_state({"asked": False})
-        asked = current_state["asked"]
-
-        if not asked:
-            state.save_state({"asked": True})
-            run(message(text))
-            raise SendToClientException
-
-        return client_response
+    def _prompt(run: RunSubdialog) -> ClientResponse:
+        run(message(text))
+        return run(send_to_client())
 
     return _prompt
 
 
 def chain(dialogs: list) -> Dialog:
-    def _chain(
-        run: RunSubdialog, state: DialogState, client_response: ClientResponse, send
-    ) -> DialogGenerator:
+    def _chain(run: RunSubdialog) -> List[Any]:
         return [run(dialog) for dialog in dialogs]
 
     return _chain
 
 
 def multichoice(question: str, wrong_answer_prompt: str, choices: List[str]) -> Dialog:
-    def _multichoice(
-        run: RunSubdialog, state: DialogState, client_response: ClientResponse, send
-    ) -> DialogGenerator:
+    def _multichoice(run: RunSubdialog) -> int:
         first_time = True
 
         while True:
@@ -68,9 +46,7 @@ def multichoice(question: str, wrong_answer_prompt: str, choices: List[str]) -> 
 
 
 def yes_no(question: str, wrong_answer_prompt: str) -> Dialog:
-    def _yes_no(
-        run: RunSubdialog, state: DialogState, client_response: ClientResponse, send
-    ) -> DialogGenerator:
+    def _yes_no(run: RunSubdialog) -> bool:
         first_time = True
 
         while True:
