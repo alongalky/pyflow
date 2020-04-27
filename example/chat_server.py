@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 import random
 
-from dialogs.persistence import InMemoryPersistence, DialogState
+from dialogs.persistence import InMemoryPersistence
 from dialogs.primitives import message, prompt, chain, multichoice, yes_no
 from dialogs import run_dialog
 
@@ -60,12 +60,12 @@ def intelligent_dialog(run):
 
 @dataclass
 class ChatServer:
-    state = DialogState(InMemoryPersistence())
+    persistence = InMemoryPersistence()
 
     def get_server_messages(self, client_response):
         main_dialog = intelligent_dialog
 
-        for messages in run_dialog(main_dialog, self.state, client_response):
+        for messages in run_dialog(main_dialog, self.persistence, client_response):
             return messages
 
         return ["Ciao!"]

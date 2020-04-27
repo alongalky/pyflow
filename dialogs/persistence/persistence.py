@@ -1,63 +1,53 @@
 from dataclasses import dataclass, field
 from abc import abstractmethod
-from typing import List
-import copy
 
 
 class PersistenceProvider:
     @abstractmethod
-    def save_state(self, path: List[str], state: dict):
+    def save_state(self, state: dict, outgoing_message):
         pass
 
     @abstractmethod
-    def get_state(self, path: List[str]) -> dict:
+    def get_state(self) -> dict:
+        pass
+
+    @abstractmethod
+    def undo(self):
         pass
 
 
-EMPTY_STATE = {"subflows": {}, "is_done": False, "return_value": None}
+def new_empty_state():
+    return {"subflows": {}, "is_done": False, "return_value": None}
 
 
 @dataclass(frozen=True)
 class DialogState:
-    persistence: PersistenceProvider
-    path: List[str] = field(default_factory=list)
+    state: dict = field(default_factory=new_empty_state)
 
     def get_subflow_state(self, subflow_id: str):
-        return DialogState(
-            persistence=self.persistence, path=[*self.path, "subflows", subflow_id]
-        )
+        if subflow_id not in self.state["subflows"]:
+            self.state["subflows"][subflow_id] = new_empty_state()
+
+        return DialogState(state=self.state["subflows"][subflow_id])
 
     def sent_to_client(self):
-        return "sent_to_client" in self._get_full_state()
+        return "sent_to_client" in self.state
 
     def set_sent_to_client(self):
-        state = self._get_full_state()
-        state["sent_to_client"] = True
-        self.persistence.save_state(self.path, state)
-
-    def _get_full_state(self):
-        state = self.persistence.get_state(self.path)
-        if not state:
-            state = copy.deepcopy(EMPTY_STATE)
-            self.persistence.save_state(self.path, state)
-
-        return state
+        self.state["sent_to_client"] = True
 
     def set_return_value(self, return_value):
-        state = self._get_full_state()
-        if state["is_done"]:
+        if self.state["is_done"]:
             raise Exception("Dialog is done, cannot set return value")
 
-        state["return_value"] = return_value
-        state["is_done"] = True
-        self.persistence.save_state(self.path, state)
+        self.state["return_value"] = return_value
+        self.state["is_done"] = True
 
     def get_return_value(self) -> object:
-        state = self.persistence.get_state(self.path)
-        if not state["is_done"]:
+        if not self.state["is_done"]:
             raise StopIteration("Dialog not done yet")
 
-        return state["return_value"]
+        return self.state["return_value"]
 
     def is_done(self) -> bool:
-        return self._get_full_state()["is_done"]
+        return self.state["is_done"]

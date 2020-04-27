@@ -3,21 +3,28 @@ from itertools import count
 from typing import Iterator
 
 from .types import Dialog, DialogGenerator, ClientResponse, SendToClientException
-from .persistence import DialogState
+from .persistence import PersistenceProvider, DialogState
 from .primitives import send_to_client, message
 from .message_queue import MessageQueue
 
 
 def run_dialog(
-    dialog: Dialog, state: DialogState, client_response: ClientResponse
+    dialog: Dialog, persistence: PersistenceProvider, client_response: ClientResponse
 ) -> DialogGenerator:
+    if client_response == "undo":
+        yield persistence.undo()
+
     queue = MessageQueue()
     send = queue.enqueue
 
+    state = persistence.get_state()
+
     try:
-        return _run(dialog, state, client_response, send, count())
+        return _run(dialog, DialogState(state), client_response, send, count())
     except SendToClientException:
-        yield queue.dequeue_all()
+        messages = queue.dequeue_all()
+        persistence.save_state(state, messages)
+        yield messages
 
 
 def _run(
