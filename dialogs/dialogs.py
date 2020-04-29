@@ -25,7 +25,7 @@ def run_dialog(
     queue = MessageQueue()
     send = queue.enqueue
 
-    state = persistence.get_state()
+    state = persistence.get_state(dialog)
 
     try:
         return _run(dialog, DialogState(state), client_response, send, count())
@@ -42,7 +42,7 @@ def _run(
     send,
     call_counter: Iterator[int],
 ):
-    subdialog_state = state.get_subdialog_state(next(call_counter), subdialog.version)
+    subdialog_state = state.get_subdialog_state(next(call_counter), subdialog)
     if subdialog_state.is_done():
         return subdialog_state.get_return_value()
 

@@ -1,5 +1,7 @@
 from abc import abstractmethod
 
+from dialogs.types import PrimitiveOrDialog
+
 
 class PersistenceProvider:
     @abstractmethod
@@ -7,7 +9,7 @@ class PersistenceProvider:
         pass
 
     @abstractmethod
-    def get_state(self) -> dict:
+    def get_state(self, dialog: PrimitiveOrDialog) -> dict:
         pass
 
     @abstractmethod
