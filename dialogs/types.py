@@ -39,6 +39,6 @@ ClientResponse = str
 ServerMessage = str
 ServerResponse = List[ServerMessage]
 
-AnyDialog = Union[send_to_client, message, Dialog]
+PrimitiveOrDialog = Union[send_to_client, message, Dialog]
 DialogGenerator = Generator[ServerResponse, None, Any]
-RunSubdialog = Callable[[AnyDialog], Any]
+RunSubdialog = Callable[[PrimitiveOrDialog], Any]
