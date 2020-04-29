@@ -1,0 +1,24 @@
+name: Static Analysis
+# This workflow is triggered on pushes to the repository.
+on: [push]
+
+jobs:
+  build:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Set up Python 3.7
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.7
+      - name: Pip installs
+        run: |
+          pip install pylint black mypy
+      - name: Pylint
+        run: |
+          pylint **/*.py
+      - name: Black
+        run: |
+          black --check **/*.py
