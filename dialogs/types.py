@@ -1,15 +1,27 @@
-from typing import Callable, Generator, Any, List, Union
+from typing import Callable, Generator, Any, List
 from dataclasses import dataclass
+from abc import abstractmethod
 
 
-class send_to_client:
+class Dialog:
+    @property
+    @classmethod
+    @abstractmethod
+    def version(cls):
+        return NotImplementedError
+
+
+class send_to_client(Dialog):
+    version = "1.0"
+
     def __call__(self):
         raise SendToClientException
 
 
 @dataclass(frozen=True)
-class message:
+class message(Dialog):
     text: str
+    version = "1.0"
 
     def __call__(self, send):
         send(self.text)
@@ -24,7 +36,4 @@ ServerMessage = str
 ServerResponse = List[ServerMessage]
 
 DialogGenerator = Generator[ServerResponse, None, Any]
-RunSubdialog = Callable[["Dialog"], Any]
-SendMessage = Callable[[ServerMessage], None]
-CompoundDialog = Callable[[RunSubdialog], Any]
-Dialog = Union[CompoundDialog, send_to_client, message]
+RunSubdialog = Callable[[Dialog], Any]

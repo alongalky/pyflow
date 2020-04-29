@@ -1,19 +1,28 @@
 from dataclasses import dataclass, field
 
 
-def new_empty_state():
-    return {"subdialogs": [], "is_done": False, "return_value": None}
+def new_empty_state(version: str = "__version_placeholder__"):
+    return {
+        "subdialogs": [],
+        "is_done": False,
+        "return_value": None,
+        "version": version,
+    }
 
 
 @dataclass(frozen=True)
 class DialogState:
     state: dict = field(default_factory=new_empty_state)
 
-    def get_subdialog_state(self, subdialog_index: int):
+    def get_subdialog_state(self, subdialog_index: int, version: str):
         if len(self.state["subdialogs"]) == subdialog_index:
-            self.state["subdialogs"].append(new_empty_state())
+            self.state["subdialogs"].append(new_empty_state(version))
 
-        return DialogState(state=self.state["subdialogs"][subdialog_index])
+        subdialog_state = DialogState(self.state["subdialogs"][subdialog_index])
+        if subdialog_state.version != version:
+            subdialog_state.reset(version)
+
+        return subdialog_state
 
     def sent_to_client(self):
         return "sent_to_client" in self.state
@@ -36,3 +45,11 @@ class DialogState:
 
     def is_done(self) -> bool:
         return self.state["is_done"]
+
+    @property
+    def version(self):
+        return self.state["version"]
+
+    def reset(self, version):
+        self.state.pop("sent_to_client", None)
+        self.state.update(new_empty_state(version))

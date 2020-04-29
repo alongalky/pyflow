@@ -35,7 +35,7 @@ def _run(
     send,
     call_counter: Iterator[int],
 ):
-    subdialog_state = state.get_subdialog_state(next(call_counter))
+    subdialog_state = state.get_subdialog_state(next(call_counter), subdialog.version)
     if subdialog_state.is_done():
         return subdialog_state.get_return_value()
 

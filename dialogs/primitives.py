@@ -1,49 +1,64 @@
 from typing import List, Any
+from dataclasses import dataclass
 
 from .types import Dialog, ClientResponse, RunSubdialog, message, send_to_client
 
 
-def prompt(text) -> Dialog:
-    def _prompt(run: RunSubdialog) -> ClientResponse:
-        run(message(text))
+@dataclass(frozen=True)
+class prompt(Dialog):
+    text: str
+    version = "1.0"
+
+    def __call__(self, run: RunSubdialog) -> ClientResponse:
+        run(message(self.text))
         return run(send_to_client())
 
-    return _prompt
+
+@dataclass(frozen=True)
+class chain(Dialog):
+    dialogs: list
+    version = "1.0"
+
+    def __call__(self, run: RunSubdialog) -> List[Any]:
+        return [run(dialog) for dialog in self.dialogs]
 
 
-def chain(dialogs: list) -> Dialog:
-    def _chain(run: RunSubdialog) -> List[Any]:
-        return [run(dialog) for dialog in dialogs]
+@dataclass(frozen=True)
+class multichoice(Dialog):
+    question: str
+    wrong_answer_prompt: str
+    choices: List[str]
+    version = "1.0"
 
-    return _chain
-
-
-def multichoice(question: str, wrong_answer_prompt: str, choices: List[str]) -> Dialog:
-    def _multichoice(run: RunSubdialog) -> int:
+    def __call__(self, run: RunSubdialog) -> int:
         first_time = True
 
         while True:
-            message = question if first_time else wrong_answer_prompt
+            message = self.question if first_time else self.wrong_answer_prompt
             text = "\n".join(
-                [message] + [f"{i+1}. {choice}" for i, choice in enumerate(choices)]
+                [message]
+                + [f"{i+1}. {choice}" for i, choice in enumerate(self.choices)]
             )
             answer = run(prompt(text))
 
-            valid_answers = {str(i + 1) for i in range(len(choices))}
+            valid_answers = {str(i + 1) for i in range(len(self.choices))}
             if answer in valid_answers:
                 return int(answer) - 1
 
             first_time = False
 
-    return _multichoice
 
+@dataclass(frozen=True)
+class yes_no(Dialog):
+    question: str
+    wrong_answer_prompt: str
+    version = "1.0"
 
-def yes_no(question: str, wrong_answer_prompt: str) -> Dialog:
-    def _yes_no(run: RunSubdialog) -> bool:
+    def __call__(self, run: RunSubdialog) -> bool:
         first_time = True
 
         while True:
-            message = question if first_time else wrong_answer_prompt
+            message = self.question if first_time else self.wrong_answer_prompt
             answer = run(prompt(message)).strip().lower()
 
             valid_answer_values = {"n": False, "no": False, "y": True, "yes": True}
@@ -51,5 +66,3 @@ def yes_no(question: str, wrong_answer_prompt: str) -> Dialog:
                 return valid_answer_values[answer]
 
             first_time = False
-
-    return _yes_no
