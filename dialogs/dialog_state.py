@@ -9,7 +9,7 @@ def new_empty_state(dialog: PrimitiveOrDialog):
         "is_done": False,
         "return_value": None,
         "version": dialog.version,
-        "name": dialog.name
+        "name": dialog.name,
     }
 
     if isinstance(dialog, send_to_client):

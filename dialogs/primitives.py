@@ -28,7 +28,7 @@ def chain(dialogs: List[PrimitiveOrDialog]) -> Dialog:
     return _chain
 
 
-def multichoice(question: str, wrong_answer_prompt: str, choices: List[str]):
+def multichoice(question: str, wrong_answer_prompt: str, choices: List[str]) -> Dialog:
     @dialog(version="1.0")
     def _multichoice(run: RunSubdialog) -> int:
         first_time = True
@@ -49,7 +49,7 @@ def multichoice(question: str, wrong_answer_prompt: str, choices: List[str]):
     return _multichoice
 
 
-def yes_no(question: str, wrong_answer_prompt: str):
+def yes_no(question: str, wrong_answer_prompt: str) -> Dialog:
     @dialog(version="1.0")
     def _yes_no(run: RunSubdialog) -> bool:
         first_time = True
