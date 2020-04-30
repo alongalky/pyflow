@@ -3,14 +3,16 @@ from itertools import count
 from typing import Iterator
 
 from .types import (
+    Dialog,
     PrimitiveOrDialog,
     DialogGenerator,
     ClientResponse,
     SendToClientException,
+    send_to_client,
+    message,
 )
 from .persistence import PersistenceProvider
 from .dialog_state import DialogState
-from .primitives import send_to_client, message
 from .message_queue import MessageQueue
 
 
@@ -54,7 +56,7 @@ def _run(
             return_value = client_response
     elif isinstance(subdialog, message):
         return_value = subdialog(send)
-    else:
+    elif isinstance(subdialog, Dialog):
         curried_run = partial(
             _run,
             state=subdialog_state,
@@ -62,7 +64,9 @@ def _run(
             send=send,
             call_counter=count(),
         )
-        return_value = subdialog(curried_run)
+        return_value = subdialog.dialog(curried_run)
+    else:
+        raise Exception("Unsupported dialog type")
 
     subdialog_state.set_return_value(return_value)
     return return_value

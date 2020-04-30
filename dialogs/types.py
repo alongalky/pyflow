@@ -1,22 +1,18 @@
 from typing import Callable, Generator, Any, List, Union
+from typing_extensions import Protocol
 from dataclasses import dataclass
-from abc import abstractmethod
 
 
+@dataclass(frozen=True)
 class Dialog:
-    @property
-    @classmethod
-    @abstractmethod
-    def version(cls):
-        return NotImplementedError
-
-    @abstractmethod
-    def __call__(self, run: "RunSubdialog") -> Any:
-        pass
+    dialog: "DialogFunction"
+    version: str
+    name: str
 
 
 class send_to_client:
     version = "1.0"
+    name = "send_to_client"
 
     def __call__(self):
         raise SendToClientException
@@ -26,6 +22,7 @@ class send_to_client:
 class message:
     text: str
     version = "1.0"
+    name = "message"
 
     def __call__(self, send):
         send(self.text)
@@ -33,6 +30,18 @@ class message:
 
 class SendToClientException(Exception):
     pass
+
+
+def dialog(version: str):
+    def _dialog(f):
+        return Dialog(version=version, name=f.__name__, dialog=f)
+
+    return _dialog
+
+
+class DialogFunction(Protocol):
+    def __call__(self, run: "RunSubdialog") -> Any:
+        ...
 
 
 ClientResponse = str
