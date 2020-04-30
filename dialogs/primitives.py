@@ -1,7 +1,14 @@
 from typing import List, Any
 from dataclasses import dataclass
 
-from .types import Dialog, ClientResponse, RunSubdialog, message, send_to_client
+from .types import (
+    PrimitiveOrDialog,
+    Dialog,
+    ClientResponse,
+    RunSubdialog,
+    message,
+    send_to_client,
+)
 
 
 @dataclass(frozen=True)
@@ -16,7 +23,7 @@ class prompt(Dialog):
 
 @dataclass(frozen=True)
 class chain(Dialog):
-    dialogs: list
+    dialogs: List[PrimitiveOrDialog]
     version = "1.0"
 
     def __call__(self, run: RunSubdialog) -> List[Any]:
