@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from dialogs.types import PrimitiveOrDialog, send_to_client
+from dialogs.types import PrimitiveOrDialog, get_client_response
 
 
 def new_empty_state(dialog: PrimitiveOrDialog):
@@ -12,7 +12,7 @@ def new_empty_state(dialog: PrimitiveOrDialog):
         "name": dialog.name,
     }
 
-    if isinstance(dialog, send_to_client):
+    if isinstance(dialog, get_client_response):
         empty_state["sent_to_client"] = False
 
     return empty_state

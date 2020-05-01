@@ -10,19 +10,19 @@ class Dialog:
     name: str
 
 
-class send_to_client:
+class get_client_response:
     version = "1.0"
-    name = "send_to_client"
+    name = "get_client_response"
 
     def __call__(self):
         raise SendToClientException
 
 
 @dataclass(frozen=True)
-class message:
+class send_message:
     text: str
     version = "1.0"
-    name = "message"
+    name = "send_message"
 
     def __call__(self, send):
         send(self.text)
@@ -48,7 +48,7 @@ ClientResponse = str
 ServerMessage = str
 ServerResponse = List[ServerMessage]
 
-PrimitiveOrDialog = Union[send_to_client, message, Dialog]
+PrimitiveOrDialog = Union[get_client_response, send_message, Dialog]
 RunSubdialog = Callable[[PrimitiveOrDialog], Any]
 
 

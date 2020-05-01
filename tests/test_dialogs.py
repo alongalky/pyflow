@@ -1,29 +1,29 @@
 from typing import Tuple
 
-from dialogs import run_dialog, dialog, message, send_to_client
+from dialogs import run_dialog, dialog, send_message, get_client_response
 from dialogs.persistence.in_memory import InMemoryPersistence
 
 
 @dialog(version="1.0")
 def name_getter_dialog(run) -> str:
-    run(message("Hello."))
-    run(message("Nice to meet you!"))
-    run(message("what is your name?"))
-    return run(send_to_client())
+    run(send_message("Hello."))
+    run(send_message("Nice to meet you!"))
+    run(send_message("what is your name?"))
+    return run(get_client_response())
 
 
 @dialog(version="1.1")
 def name_getter_dialog_take_2(run) -> str:
-    run(message("Tell me your name! Now!!!"))
-    return run(send_to_client())
+    run(send_message("Tell me your name! Now!!!"))
+    return run(get_client_response())
 
 
 @dialog(version="1.0")
 def topic_dialog(run) -> Tuple[str, str]:
     name = run(name_getter_dialog)
-    run(message(f"Hi {name}!"))
-    run(message("What would you like to talk about"))
-    topic = run(send_to_client())
+    run(send_message(f"Hi {name}!"))
+    run(send_message("What would you like to talk about"))
+    topic = run(get_client_response())
     return name, topic
 
 

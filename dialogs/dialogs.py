@@ -7,8 +7,8 @@ from .types import (
     PrimitiveOrDialog,
     ClientResponse,
     SendToClientException,
-    send_to_client,
-    message,
+    get_client_response,
+    send_message,
     DialogStep,
 )
 from .persistence import PersistenceProvider
@@ -46,13 +46,13 @@ def _run(
     if subdialog_state.is_done():
         return subdialog_state.get_return_value()
 
-    if isinstance(subdialog, send_to_client):
+    if isinstance(subdialog, get_client_response):
         if not subdialog_state.sent_to_client():
             subdialog_state.set_sent_to_client()
             return subdialog()
         else:
             return_value = client_response
-    elif isinstance(subdialog, message):
+    elif isinstance(subdialog, send_message):
         return_value = subdialog(send)
     elif isinstance(subdialog, Dialog):
         curried_run = partial(

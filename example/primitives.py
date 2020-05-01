@@ -5,8 +5,8 @@ from dialogs.types import (
     Dialog,
     ClientResponse,
     RunSubdialog,
-    message,
-    send_to_client,
+    send_message,
+    get_client_response,
     dialog,
 )
 
@@ -14,8 +14,8 @@ from dialogs.types import (
 def prompt(text):
     @dialog(version="1.0")
     def _prompt(run: RunSubdialog) -> ClientResponse:
-        run(message(text))
-        return run(send_to_client())
+        run(send_message(text))
+        return run(get_client_response())
 
     return _prompt
 
