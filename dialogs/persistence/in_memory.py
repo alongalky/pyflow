@@ -8,20 +8,10 @@ from dialogs.types import PrimitiveOrDialog
 
 @dataclass
 class InMemoryPersistence(PersistenceProvider):
-    history: list = field(default_factory=list)
-    outgoing_messages: list = field(default_factory=list)
+    state: dict = field(default_factory=dict)
 
     def save_state(self, state, outgoing_message):
-        self.history.append(copy.deepcopy(state))
-        self.outgoing_messages.append(outgoing_message)
+        self.state = copy.deepcopy(state)
 
     def get_state(self, dialog: PrimitiveOrDialog):
-        return (
-            copy.deepcopy(self.history[-1]) if self.history else new_empty_state(dialog)
-        )
-
-    def undo(self):
-        if len(self.history) > 1:
-            self.history.pop()
-            self.outgoing_messages.pop()
-        return self.outgoing_messages[-1]
+        return copy.deepcopy(self.state) if self.state else new_empty_state(dialog)

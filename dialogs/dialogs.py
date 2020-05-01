@@ -21,9 +21,6 @@ def run_dialog(
     persistence: PersistenceProvider,
     client_response: ClientResponse,
 ) -> DialogStep:
-    if client_response == "undo":
-        return DialogStep(messages=persistence.undo())
-
     queue = MessageQueue()
     send = queue.enqueue
 

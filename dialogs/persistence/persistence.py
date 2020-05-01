@@ -11,7 +11,3 @@ class PersistenceProvider:
     @abstractmethod
     def get_state(self, dialog: PrimitiveOrDialog) -> dict:
         pass
-
-    @abstractmethod
-    def undo(self):
-        pass
