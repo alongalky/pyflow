@@ -22,3 +22,6 @@ jobs:
       - name: Black
         run: |
           black --check **/*.py
+      - name: mypy
+        run: |
+          mypy .

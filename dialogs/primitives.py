@@ -1,9 +1,18 @@
 from typing import List, Any
 
-from .types import Dialog, ClientResponse, RunSubdialog, message, send_to_client
+from .types import (
+    PrimitiveOrDialog,
+    Dialog,
+    ClientResponse,
+    RunSubdialog,
+    message,
+    send_to_client,
+    dialog,
+)
 
 
-def prompt(text) -> Dialog:
+def prompt(text):
+    @dialog(version="1.0")
     def _prompt(run: RunSubdialog) -> ClientResponse:
         run(message(text))
         return run(send_to_client())
@@ -11,7 +20,8 @@ def prompt(text) -> Dialog:
     return _prompt
 
 
-def chain(dialogs: list) -> Dialog:
+def chain(dialogs: List[PrimitiveOrDialog]) -> Dialog:
+    @dialog(version="1.0")
     def _chain(run: RunSubdialog) -> List[Any]:
         return [run(dialog) for dialog in dialogs]
 
@@ -19,6 +29,7 @@ def chain(dialogs: list) -> Dialog:
 
 
 def multichoice(question: str, wrong_answer_prompt: str, choices: List[str]) -> Dialog:
+    @dialog(version="1.0")
     def _multichoice(run: RunSubdialog) -> int:
         first_time = True
 
@@ -39,6 +50,7 @@ def multichoice(question: str, wrong_answer_prompt: str, choices: List[str]) -> 
 
 
 def yes_no(question: str, wrong_answer_prompt: str) -> Dialog:
+    @dialog(version="1.0")
     def _yes_no(run: RunSubdialog) -> bool:
         first_time = True
 

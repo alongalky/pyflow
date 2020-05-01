@@ -1,22 +1,39 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
+
+from dialogs.types import PrimitiveOrDialog, send_to_client
 
 
-def new_empty_state():
-    return {"subdialogs": [], "is_done": False, "return_value": None}
+def new_empty_state(dialog: PrimitiveOrDialog):
+    empty_state = {
+        "subdialogs": [],
+        "is_done": False,
+        "return_value": None,
+        "version": dialog.version,
+        "name": dialog.name,
+    }
+
+    if isinstance(dialog, send_to_client):
+        empty_state["sent_to_client"] = False
+
+    return empty_state
 
 
 @dataclass(frozen=True)
 class DialogState:
-    state: dict = field(default_factory=new_empty_state)
+    state: dict
 
-    def get_subdialog_state(self, subdialog_index: int):
+    def get_subdialog_state(self, subdialog_index: int, subdialog: PrimitiveOrDialog):
         if len(self.state["subdialogs"]) == subdialog_index:
-            self.state["subdialogs"].append(new_empty_state())
+            self.state["subdialogs"].append(new_empty_state(subdialog))
 
-        return DialogState(state=self.state["subdialogs"][subdialog_index])
+        subdialog_state = DialogState(self.state["subdialogs"][subdialog_index])
+        if subdialog_state.version != subdialog.version:
+            subdialog_state.reset(subdialog)
+
+        return subdialog_state
 
     def sent_to_client(self):
-        return "sent_to_client" in self.state
+        return self.state.get("sent_to_client", False)
 
     def set_sent_to_client(self):
         self.state["sent_to_client"] = True
@@ -36,3 +53,11 @@ class DialogState:
 
     def is_done(self) -> bool:
         return self.state["is_done"]
+
+    @property
+    def version(self):
+        return self.state["version"]
+
+    def reset(self, dialog: PrimitiveOrDialog):
+        self.state.pop("sent_to_client", None)
+        self.state.update(new_empty_state(dialog))

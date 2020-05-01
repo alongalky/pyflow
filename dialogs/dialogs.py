@@ -2,15 +2,24 @@ from functools import partial
 from itertools import count
 from typing import Iterator
 
-from .types import Dialog, DialogGenerator, ClientResponse, SendToClientException
+from .types import (
+    Dialog,
+    PrimitiveOrDialog,
+    DialogGenerator,
+    ClientResponse,
+    SendToClientException,
+    send_to_client,
+    message,
+)
 from .persistence import PersistenceProvider
 from .dialog_state import DialogState
-from .primitives import send_to_client, message
 from .message_queue import MessageQueue
 
 
 def run_dialog(
-    dialog: Dialog, persistence: PersistenceProvider, client_response: ClientResponse
+    dialog: PrimitiveOrDialog,
+    persistence: PersistenceProvider,
+    client_response: ClientResponse,
 ) -> DialogGenerator:
     if client_response == "undo":
         yield persistence.undo()
@@ -18,7 +27,7 @@ def run_dialog(
     queue = MessageQueue()
     send = queue.enqueue
 
-    state = persistence.get_state()
+    state = persistence.get_state(dialog)
 
     try:
         return _run(dialog, DialogState(state), client_response, send, count())
@@ -29,13 +38,13 @@ def run_dialog(
 
 
 def _run(
-    subdialog: Dialog,
+    subdialog: PrimitiveOrDialog,
     state: DialogState,
     client_response: ClientResponse,
     send,
     call_counter: Iterator[int],
 ):
-    subdialog_state = state.get_subdialog_state(next(call_counter))
+    subdialog_state = state.get_subdialog_state(next(call_counter), subdialog)
     if subdialog_state.is_done():
         return subdialog_state.get_return_value()
 
@@ -47,7 +56,7 @@ def _run(
             return_value = client_response
     elif isinstance(subdialog, message):
         return_value = subdialog(send)
-    else:
+    elif isinstance(subdialog, Dialog):
         curried_run = partial(
             _run,
             state=subdialog_state,
@@ -55,7 +64,9 @@ def _run(
             send=send,
             call_counter=count(),
         )
-        return_value = subdialog(curried_run)
+        return_value = subdialog.dialog(curried_run)
+    else:
+        raise Exception("Unsupported dialog type")
 
     subdialog_state.set_return_value(return_value)
     return return_value
