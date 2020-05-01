@@ -3,8 +3,9 @@ import random
 
 from dialogs.types import dialog
 from dialogs.persistence import InMemoryPersistence
-from dialogs.primitives import message, prompt, chain, multichoice, yes_no
 from dialogs import run_dialog
+
+from .primitives import message, prompt, chain, multichoice, yes_no
 
 DRAGON_DIALOG = chain(
     [

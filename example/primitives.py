@@ -1,6 +1,6 @@
 from typing import List, Any
 
-from .types import (
+from dialogs.types import (
     PrimitiveOrDialog,
     Dialog,
     ClientResponse,
