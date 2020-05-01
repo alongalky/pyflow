@@ -67,7 +67,9 @@ class ChatServer:
     def get_server_messages(self, client_response):
         main_dialog = intelligent_dialog
 
-        for messages in run_dialog(main_dialog, self.persistence, client_response):
-            return messages
+        dialog_step = run_dialog(main_dialog, self.persistence, client_response)
+        if not dialog_step.is_done:
+            return dialog_step.messages
+        return_value = dialog_step.return_value
 
-        return ["Ciao!"]
+        return [f"Dialog is done, return value is: {return_value}", "Ciao!"]

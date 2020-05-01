@@ -5,11 +5,11 @@ from typing import Iterator
 from .types import (
     Dialog,
     PrimitiveOrDialog,
-    DialogGenerator,
     ClientResponse,
     SendToClientException,
     send_to_client,
     message,
+    DialogStep,
 )
 from .persistence import PersistenceProvider
 from .dialog_state import DialogState
@@ -20,9 +20,9 @@ def run_dialog(
     dialog: PrimitiveOrDialog,
     persistence: PersistenceProvider,
     client_response: ClientResponse,
-) -> DialogGenerator:
+) -> DialogStep:
     if client_response == "undo":
-        yield persistence.undo()
+        return DialogStep(messages=persistence.undo())
 
     queue = MessageQueue()
     send = queue.enqueue
@@ -30,11 +30,12 @@ def run_dialog(
     state = persistence.get_state(dialog)
 
     try:
-        return _run(dialog, DialogState(state), client_response, send, count())
+        return_value = _run(dialog, DialogState(state), client_response, send, count())
+        return DialogStep(is_done=True, return_value=return_value)
     except SendToClientException:
         messages = queue.dequeue_all()
         persistence.save_state(state, messages)
-        yield messages
+        return DialogStep(messages=messages)
 
 
 def _run(

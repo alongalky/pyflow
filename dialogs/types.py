@@ -1,6 +1,6 @@
-from typing import Callable, Generator, Any, List, Union
+from typing import Callable, Any, List, Union
 from typing_extensions import Protocol
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 
 @dataclass(frozen=True)
@@ -49,5 +49,11 @@ ServerMessage = str
 ServerResponse = List[ServerMessage]
 
 PrimitiveOrDialog = Union[send_to_client, message, Dialog]
-DialogGenerator = Generator[ServerResponse, None, Any]
 RunSubdialog = Callable[[PrimitiveOrDialog], Any]
+
+
+@dataclass(frozen=True)
+class DialogStep:
+    is_done: bool = False
+    return_value: Any = None
+    messages: List[ServerMessage] = field(default_factory=list)
