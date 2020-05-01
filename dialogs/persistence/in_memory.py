@@ -10,7 +10,7 @@ from dialogs.types import PrimitiveOrDialog
 class InMemoryPersistence(PersistenceProvider):
     state: dict = field(default_factory=dict)
 
-    def save_state(self, state, outgoing_message):
+    def save_state(self, state):
         self.state = copy.deepcopy(state)
 
     def get_state(self, dialog: PrimitiveOrDialog):

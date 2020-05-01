@@ -31,7 +31,7 @@ def run_dialog(
         return DialogStep(is_done=True, return_value=return_value)
     except SendToClientException:
         messages = queue.dequeue_all()
-        persistence.save_state(state, messages)
+        persistence.save_state(state)
         return DialogStep(messages=messages)
 
 

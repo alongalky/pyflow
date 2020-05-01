@@ -47,7 +47,7 @@ class DialogState:
 
     def get_return_value(self) -> object:
         if not self.state["is_done"]:
-            raise StopIteration("Dialog not done yet")
+            raise Exception("Dialog not done yet")
 
         return self.state["return_value"]
 

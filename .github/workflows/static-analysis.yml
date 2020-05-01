@@ -15,7 +15,7 @@ jobs:
           python-version: 3.7
       - name: Pip installs
         run: |
-          pip install pylint black mypy
+          pip install pylint black mypy pytest
       - name: Pylint
         run: |
           pylint **/*.py
@@ -24,4 +24,7 @@ jobs:
           black --check **/*.py
       - name: mypy
         run: |
-          mypy .
+          mypy --ignore-missing-imports .
+      - name: pytest
+        run: |
+          pytest tests --quiet

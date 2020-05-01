@@ -5,7 +5,7 @@ from dialogs.types import PrimitiveOrDialog
 
 class PersistenceProvider:
     @abstractmethod
-    def save_state(self, state: dict, outgoing_message):
+    def save_state(self, state: dict):
         pass
 
     @abstractmethod
