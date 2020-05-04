@@ -1,7 +1,7 @@
 import pytest
 
-from dialogs.types import get_client_response, send_message, dialog
-from dialogs.dialog_state import DialogState, new_empty_state
+from ..dialogs.types import get_client_response, send_message, dialog
+from ..dialogs.dialog_state import DialogState, new_empty_state
 
 
 @dialog(version="1.0")

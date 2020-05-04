@@ -1,9 +1,9 @@
 from dataclasses import dataclass
 import random
 
-from dialogs.types import dialog
-from dialogs.persistence import InMemoryPersistence
-from dialogs import run_dialog
+from ..dialogs.types import dialog
+from ..dialogs.persistence import InMemoryPersistence
+from ..dialogs import run_dialog
 
 from .primitives import send_message, prompt, chain, multichoice, yes_no
 

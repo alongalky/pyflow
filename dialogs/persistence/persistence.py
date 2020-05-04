@@ -1,6 +1,6 @@
 from abc import abstractmethod
 
-from dialogs.types import PrimitiveOrDialog
+from ..types import PrimitiveOrDialog
 
 
 class PersistenceProvider:

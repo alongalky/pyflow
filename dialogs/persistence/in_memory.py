@@ -2,8 +2,8 @@ from dataclasses import dataclass, field
 import copy
 
 from .persistence import PersistenceProvider
-from dialogs.dialog_state import new_empty_state
-from dialogs.types import PrimitiveOrDialog
+from ..dialog_state import new_empty_state
+from ..types import PrimitiveOrDialog
 
 
 @dataclass

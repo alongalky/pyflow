@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from dialogs.types import PrimitiveOrDialog, get_client_response
+from .types import PrimitiveOrDialog, get_client_response
 
 
 def new_empty_state(dialog: PrimitiveOrDialog):

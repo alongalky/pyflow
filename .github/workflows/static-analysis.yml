@@ -24,7 +24,7 @@ jobs:
           black --check **/*.py
       - name: mypy
         run: |
-          mypy --ignore-missing-imports .
+          mypy --ignore-missing-imports **/*.py
       - name: pytest
         run: |
           pytest tests --quiet

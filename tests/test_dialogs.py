@@ -1,7 +1,7 @@
 from typing import Tuple
 
-from dialogs import run_dialog, dialog, send_message, get_client_response
-from dialogs.persistence.in_memory import InMemoryPersistence
+from ..dialogs import run_dialog, dialog, send_message, get_client_response
+from ..dialogs.persistence.in_memory import InMemoryPersistence
 
 
 @dialog(version="1.0")
